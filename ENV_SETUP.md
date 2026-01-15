@@ -5,5 +5,5 @@
 
 OPENAI_API_KEY=your_key_here
 
-3. Restart `npm run dev`
+3. Restart ` `
 
