@@ -34,7 +34,31 @@ export async function GET(request: NextRequest) {
     })
 
     // Transform the data to match our TypeScript types
-    const transformedOutfits = outfits.map((outfit) => ({
+    const transformedOutfits = outfits.map((outfit: {
+      id: string
+      name: string
+      tags: string
+      season: string
+      notes: string | null
+      createdAt: Date
+      updatedAt: Date
+      items: Array<{
+        clothingItem: {
+          id: string
+          name: string
+          category: string
+          color: string
+          brand: string | null
+          season: string
+          fit: string | null
+          material: string | null
+          tags: string
+          imageUrl: string | null
+          createdAt: Date
+          updatedAt: Date
+        }
+      }>
+    }) => ({
       id: outfit.id,
       name: outfit.name,
       tags: parseTags(outfit.tags),
@@ -42,7 +66,22 @@ export async function GET(request: NextRequest) {
       notes: outfit.notes,
       createdAt: outfit.createdAt,
       updatedAt: outfit.updatedAt,
-      items: outfit.items.map((outfitItem) => ({
+      items: outfit.items.map((outfitItem: {
+        clothingItem: {
+          id: string
+          name: string
+          category: string
+          color: string
+          brand: string | null
+          season: string
+          fit: string | null
+          material: string | null
+          tags: string
+          imageUrl: string | null
+          createdAt: Date
+          updatedAt: Date
+        }
+      }) => ({
         ...outfitItem.clothingItem,
         tags: parseTags(outfitItem.clothingItem.tags),
       })),
@@ -119,15 +158,30 @@ export async function POST(request: NextRequest) {
       notes: completeOutfit.notes,
       createdAt: completeOutfit.createdAt,
       updatedAt: completeOutfit.updatedAt,
-      items: completeOutfit.items.map((outfitItem) => ({
+      items: completeOutfit.items.map((outfitItem: {
+        clothingItem: {
+          id: string
+          name: string
+          category: string
+          color: string
+          brand: string | null
+          season: string
+          fit: string | null
+          material: string | null
+          tags: string
+          imageUrl: string | null
+          createdAt: Date
+          updatedAt: Date
+        }
+      }) => ({
         ...outfitItem.clothingItem,
         tags: parseTags(outfitItem.clothingItem.tags),
       })),
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating outfit:', error)
-    const errorMessage = process.env.NODE_ENV === 'development' 
-      ? error.message || 'Failed to create outfit'
+    const errorMessage = error instanceof Error 
+      ? (process.env.NODE_ENV === 'development' ? error.message : 'Failed to create outfit')
       : 'Failed to create outfit'
     return NextResponse.json(
       { error: errorMessage },

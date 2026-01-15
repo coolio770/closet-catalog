@@ -49,7 +49,22 @@ export async function GET(
       notes: outfit.notes,
       createdAt: outfit.createdAt,
       updatedAt: outfit.updatedAt,
-      items: outfit.items.map((outfitItem) => ({
+      items: outfit.items.map((outfitItem: {
+        clothingItem: {
+          id: string
+          name: string
+          category: string
+          color: string
+          brand: string | null
+          season: string
+          fit: string | null
+          material: string | null
+          tags: string
+          imageUrl: string | null
+          createdAt: Date
+          updatedAt: Date
+        }
+      }) => ({
         ...outfitItem.clothingItem,
         tags: parseTags(outfitItem.clothingItem.tags),
       })),
@@ -73,7 +88,12 @@ export async function PUT(
     const { name, tags, season, notes, itemIds } = body
 
     // Update outfit fields
-    const updateData: any = {}
+    const updateData: {
+        name?: string
+        tags?: string
+        season?: string
+        notes?: string | null
+      } = {}
     if (name !== undefined) updateData.name = name
     if (tags !== undefined) updateData.tags = stringifyTags(tags)
     if (season !== undefined) updateData.season = season
@@ -126,7 +146,22 @@ export async function PUT(
       notes: outfit.notes,
       createdAt: outfit.createdAt,
       updatedAt: outfit.updatedAt,
-      items: outfit.items.map((outfitItem) => ({
+      items: outfit.items.map((outfitItem: {
+        clothingItem: {
+          id: string
+          name: string
+          category: string
+          color: string
+          brand: string | null
+          season: string
+          fit: string | null
+          material: string | null
+          tags: string
+          imageUrl: string | null
+          createdAt: Date
+          updatedAt: Date
+        }
+      }) => ({
         ...outfitItem.clothingItem,
         tags: parseTags(outfitItem.clothingItem.tags),
       })),

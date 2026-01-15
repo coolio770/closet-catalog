@@ -189,12 +189,11 @@ export async function POST() {
       .slice(0, 5)
 
     return NextResponse.json({ outfits: cleaned })
-  } catch (error: any) {
+  } catch (error) {
     console.error('AI outfit-suggest error:', error)
-    const msg =
-      process.env.NODE_ENV === 'development'
-        ? error?.message || 'Failed to get AI suggestions'
-        : 'Failed to get AI suggestions'
+    const msg = error instanceof Error
+      ? (process.env.NODE_ENV === 'development' ? error.message : 'Failed to get AI suggestions')
+      : 'Failed to get AI suggestions'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

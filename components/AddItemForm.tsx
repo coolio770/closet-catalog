@@ -99,9 +99,10 @@ export default function AddItemForm({ onItemAdded }: AddItemFormProps) {
       if (fileInput) fileInput.value = ''
 
       onItemAdded()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding item:', error)
-      alert(error.message || 'Failed to add item')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add item'
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
     }

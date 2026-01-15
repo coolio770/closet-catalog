@@ -21,7 +21,6 @@ export default function ClosetGrid({ items, onItemDeleted }: ClosetGridProps) {
     season: '' as Season | '',
     search: '',
   })
-  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     let filtered = [...items]

@@ -66,7 +66,17 @@ export async function PUT(
       imageUrl,
     } = body
 
-    const updateData: any = {}
+    const updateData: {
+      name?: string
+      category?: string
+      color?: string
+      brand?: string | null
+      season?: string
+      fit?: string | null
+      material?: string | null
+      tags?: string
+      imageUrl?: string | null
+    } = {}
     if (name !== undefined) updateData.name = name
     if (category !== undefined) updateData.category = category
     if (color !== undefined) updateData.color = color

@@ -3,7 +3,7 @@
 // Outfit Builder - Mobile-first, GOAT/StockX inspired
 // Touch-optimized with bottom drawer for items
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { ClothingItem } from '@/types'
 import MobileNav from './MobileNav'
 
@@ -29,8 +29,6 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
   const [outfitItems, setOutfitItems] = useState<DraggedItem[]>([])
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null)
   const [outfitName, setOutfitName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -67,16 +65,20 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
       })
     } else if (draggedItemId && canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect()
-      const x = (e.clientX - rect.left - pan.x) / zoom - dragStart.x
-      const y = (e.clientY - rect.top - pan.y) / zoom - dragStart.y
+      const item = outfitItems.find((i) => i.id === draggedItemId)
+      if (item) {
+        // Calculate position relative to canvas
+        const x = (e.clientX - rect.left - pan.x) / zoom - 64 // 64 is half of item width (128/2)
+        const y = (e.clientY - rect.top - pan.y) / zoom - 64
 
-      setOutfitItems(
-        outfitItems.map((item) =>
-          item.id === draggedItemId ? { ...item, x, y } : item
+        setOutfitItems(
+          outfitItems.map((i) =>
+            i.id === draggedItemId ? { ...i, x, y } : i
+          )
         )
-      )
+      }
     }
-  }, [pan, zoom, dragStart, draggedItemId, outfitItems])
+  }, [pan, zoom, draggedItemId, outfitItems])
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false
@@ -186,8 +188,9 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
         throw new Error(typeof payload === 'string' ? payload : payload?.error || 'Failed')
       }
       setSuggestions(payload.outfits || [])
-    } catch (e: any) {
-      alert(e.message || 'Failed to get suggestions')
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to get suggestions'
+      alert(errorMessage)
     } finally {
       setIsSuggesting(false)
     }
@@ -403,7 +406,7 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
             {outfitItems.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center text-gray-400">
-                  <p className="text-sm font-medium">Tap "Items" to add clothing</p>
+                  <p className="text-sm font-medium">Tap &quot;Items&quot; to add clothing</p>
                   <p className="text-xs mt-1">or use AI Suggest</p>
                 </div>
               </div>

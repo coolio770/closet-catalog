@@ -38,7 +38,12 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     // Note: SQLite doesn't support case-insensitive mode, so we use contains
-    const where: any = {}
+    const where: {
+      category?: string
+      season?: string
+      color?: { contains: string }
+      OR?: Array<{ name?: { contains: string }; brand?: { contains: string }; color?: { contains: string } }>
+    } = {}
     if (category) where.category = category
     if (season) where.season = season
     if (color) where.color = { contains: color }
@@ -56,7 +61,20 @@ export async function GET(request: NextRequest) {
     })
 
     // Parse tags for each item
-    const itemsWithParsedTags = items.map((item: any) => ({
+    const itemsWithParsedTags = items.map((item: {
+      id: string
+      name: string
+      category: string
+      color: string
+      brand: string | null
+      season: string
+      fit: string | null
+      material: string | null
+      tags: string
+      imageUrl: string | null
+      createdAt: Date
+      updatedAt: Date
+    }) => ({
       ...item,
       tags: parseTags(item.tags),
     }))
@@ -128,7 +146,7 @@ export async function POST(request: NextRequest) {
         color,
         brand: brand || null,
         season: season || 'ALL_SEASON',
-        fit: (fit as any) || null,
+        fit: fit || null,
         material: material || null,
         tags: stringifyTags(tags),
         imageUrl: null, // Will update after saving image
@@ -148,11 +166,10 @@ export async function POST(request: NextRequest) {
       ...item,
       tags: parseTags(item.tags),
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating item:', error)
-    // Return detailed error in development
-    const errorMessage = process.env.NODE_ENV === 'development' 
-      ? error.message || 'Failed to create item'
+    const errorMessage = error instanceof Error
+      ? (process.env.NODE_ENV === 'development' ? error.message : 'Failed to create item')
       : 'Failed to create item'
     return NextResponse.json(
       { error: errorMessage },
