@@ -38,9 +38,15 @@ export const itemsAPI = {
     }
 
     return storage.createItem({
-      ...data,
-      imageUrl,
+      name: data.name,
+      category: data.category,
+      color: data.color,
+      brand: data.brand || null,
+      season: data.season,
+      fit: data.fit || null,
+      material: data.material || null,
       tags: data.tags || [],
+      imageUrl,
     })
   },
 
@@ -50,7 +56,17 @@ export const itemsAPI = {
     data: Partial<ClothingItemFormData>,
     imageFile?: File
   ): Promise<ClothingItem> {
-    const updates: Partial<ClothingItem> = { ...data }
+    const updates: Partial<ClothingItem> = {}
+    
+    // Convert form data to storage format (undefined -> null)
+    if (data.name !== undefined) updates.name = data.name
+    if (data.category !== undefined) updates.category = data.category
+    if (data.color !== undefined) updates.color = data.color
+    if (data.brand !== undefined) updates.brand = data.brand || null
+    if (data.season !== undefined) updates.season = data.season
+    if (data.fit !== undefined) updates.fit = data.fit || null
+    if (data.material !== undefined) updates.material = data.material || null
+    if (data.tags !== undefined) updates.tags = data.tags
 
     // Handle image upload
     if (imageFile) {
