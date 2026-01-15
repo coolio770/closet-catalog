@@ -1,14 +1,14 @@
-// Prisma schema for Closet Catalog app
-// Using PostgreSQL for production (Vercel-compatible)
-// For local development with SQLite, see schema.sqlite.prisma
+// Prisma schema for Closet Catalog app - SQLite version for local development
+// This is a backup copy for local development
+// For production, use the main schema.prisma which uses PostgreSQL
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // Note: SQLite doesn't support enums, so we use String types with constraints
