@@ -74,20 +74,17 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
       })
     } else if (draggedItemId && canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect()
-      const item = outfitItems.find((i) => i.id === draggedItemId)
-      if (item) {
-        // Calculate position relative to canvas (accounting for zoom and pan)
-        // Convert screen coordinates to canvas coordinates
-        const x = (e.clientX - rect.left - pan.x) / zoom - 64 // 64 is half of item width (128/2)
-        const y = (e.clientY - rect.top - pan.y) / zoom - 64
+      // Calculate position in canvas space (accounting for zoom and pan)
+      // Screen coordinates -> canvas coordinates
+      const x = (e.clientX - rect.left - pan.x) / zoom - 64 // 64 is half of item width (128/2)
+      const y = (e.clientY - rect.top - pan.y) / zoom - 64
 
-        // Only update the dragged item's position
-        setOutfitItems((prevItems) =>
-          prevItems.map((i) =>
-            i.id === draggedItemId ? { ...i, x, y } : i
-          )
+      // Only update the dragged item's position
+      setOutfitItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === draggedItemId ? { ...i, x, y } : i
         )
-      }
+      )
     }
   }, [pan, zoom, draggedItemId, outfitItems])
 
@@ -206,10 +203,19 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
   }
 
   const applySuggestion = (itemIds: string[], name: string) => {
+    // Filter items that match the suggested IDs
     const selected = items.filter((i) => itemIds.includes(i.id))
+    
     if (selected.length === 0) {
-      alert('Could not find items for this suggestion. They may have been deleted.')
+      console.error('AI returned itemIds:', itemIds)
+      console.error('Available item IDs:', items.map(i => i.id))
+      alert(`Could not find items for this suggestion. Expected ${itemIds.length} items but found ${selected.length}. The AI may have returned incorrect IDs.`)
       return
+    }
+    
+    // If some items are missing, still show what we found
+    if (selected.length < itemIds.length) {
+      console.warn(`Only found ${selected.length} of ${itemIds.length} suggested items`)
     }
     
     if (name) setOutfitName(name)
@@ -376,18 +382,22 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
               {Math.round(zoom * 100)}%
             </div>
 
-            {/* Outfit items */}
-            <div className="absolute inset-0">
+            {/* Outfit items - positioned in canvas space */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: '0 0',
+              }}
+            >
               {outfitItems.map((draggedItem) => (
                 <div
                   key={draggedItem.id}
                   data-item-id={draggedItem.id}
                   style={{
                     position: 'absolute',
-                    left: `${draggedItem.x * zoom + pan.x}px`,
-                    top: `${draggedItem.y * zoom + pan.y}px`,
-                    transform: `scale(${zoom})`,
-                    transformOrigin: '0 0',
+                    left: `${draggedItem.x}px`,
+                    top: `${draggedItem.y}px`,
                     cursor: draggedItemId === draggedItem.id ? 'grabbing' : 'grab',
                     zIndex: draggedItemId === draggedItem.id ? 50 : 10,
                   }}

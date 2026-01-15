@@ -29,11 +29,11 @@ export async function suggestOutfits(items: ClothingItem[]): Promise<Suggestion[
     dangerouslyAllowBrowser: true, // Required for client-side usage
   })
 
-  // Convert items to a description for the AI
+  // Convert items to a description for the AI with IDs
   const itemsDescription = items
     .map(
       (item) =>
-        `- ${item.name} (${item.category}, ${item.color}${item.brand ? `, ${item.brand}` : ''}, ${item.season})`
+        `ID: ${item.id} - ${item.name} (${item.category}, ${item.color}${item.brand ? `, ${item.brand}` : ''}, ${item.season})`
     )
     .join('\n')
 
@@ -44,7 +44,7 @@ ${itemsDescription}
 
 For each outfit suggestion, provide:
 1. A creative name for the outfit
-2. Which items to combine (by their names)
+2. Which items to combine (use the EXACT IDs from the list above)
 3. Brief reasoning for why these items work together
 
 Return ONLY valid JSON in this exact format:
@@ -52,14 +52,14 @@ Return ONLY valid JSON in this exact format:
   "outfits": [
     {
       "name": "Outfit Name",
-      "itemIds": ["item-id-1", "item-id-2"],
+      "itemIds": ["${items[0]?.id || 'item-id-1'}", "${items[1]?.id || 'item-id-2'}"],
       "reasoning": "Why these items work together"
     }
   ]
 }
 
 Important:
-- Use the exact item IDs from the list above
+- Use the EXACT item IDs from the list above (the "ID: ..." part)
 - Create 3-5 outfit suggestions
 - Mix different categories (tops, bottoms, outerwear, shoes, accessories)
 - Consider color coordination and season
