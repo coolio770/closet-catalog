@@ -76,12 +76,14 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
       const rect = canvasRef.current.getBoundingClientRect()
       const item = outfitItems.find((i) => i.id === draggedItemId)
       if (item) {
-        // Calculate position relative to canvas
+        // Calculate position relative to canvas (accounting for zoom and pan)
+        // Convert screen coordinates to canvas coordinates
         const x = (e.clientX - rect.left - pan.x) / zoom - 64 // 64 is half of item width (128/2)
         const y = (e.clientY - rect.top - pan.y) / zoom - 64
 
-        setOutfitItems(
-          outfitItems.map((i) =>
+        // Only update the dragged item's position
+        setOutfitItems((prevItems) =>
+          prevItems.map((i) =>
             i.id === draggedItemId ? { ...i, x, y } : i
           )
         )
@@ -126,20 +128,21 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
   const handleAddItem = (item: ClothingItem) => {
     if (!canvasRef.current) return
     const rect = canvasRef.current.getBoundingClientRect()
+    // Calculate center position in canvas coordinates (not screen coordinates)
     const centerX = (rect.width / 2 - pan.x) / zoom
     const centerY = (rect.height / 2 - pan.y) / zoom
     
     // Offset each new item slightly so they don't overlap
-    const offsetX = (outfitItems.length % 3) * 20 - 20 // -20, 0, 20
-    const offsetY = Math.floor(outfitItems.length / 3) * 20
+    const offsetX = (outfitItems.length % 3) * 30 - 30 // -30, 0, 30
+    const offsetY = Math.floor(outfitItems.length / 3) * 30
     
     const newItem: DraggedItem = {
       item,
-      x: centerX - 64 + offsetX, // Center with slight offset
+      x: centerX - 64 + offsetX, // Center with slight offset (64 is half item width)
       y: centerY - 64 + offsetY,
       id: `${item.id}-${Date.now()}-${Math.random()}`,
     }
-    setOutfitItems([...outfitItems, newItem])
+    setOutfitItems((prev) => [...prev, newItem])
     setShowItemDrawer(false) // Close drawer on mobile after adding
   }
 
@@ -374,21 +377,17 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
             </div>
 
             {/* Outfit items */}
-            <div
-              style={{
-                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                transformOrigin: '0 0',
-              }}
-              className="absolute inset-0"
-            >
+            <div className="absolute inset-0">
               {outfitItems.map((draggedItem) => (
                 <div
                   key={draggedItem.id}
                   data-item-id={draggedItem.id}
                   style={{
                     position: 'absolute',
-                    left: `${draggedItem.x}px`,
-                    top: `${draggedItem.y}px`,
+                    left: `${draggedItem.x * zoom + pan.x}px`,
+                    top: `${draggedItem.y * zoom + pan.y}px`,
+                    transform: `scale(${zoom})`,
+                    transformOrigin: '0 0',
                     cursor: draggedItemId === draggedItem.id ? 'grabbing' : 'grab',
                     zIndex: draggedItemId === draggedItem.id ? 50 : 10,
                   }}
@@ -413,7 +412,9 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
                         e.stopPropagation()
                         removeItem(draggedItem.id)
                       }}
-                      className="absolute -top-1 -right-1 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10"
+                      className={`absolute -top-1 -right-1 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold z-10 ${
+                        draggedItemId === draggedItem.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      }`}
                     >
                       ×
                     </button>
