@@ -1,0 +1,69 @@
+// Prisma schema for Closet Catalog app
+// Using SQLite for local-first development, easy to migrate to PostgreSQL later
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Note: SQLite doesn't support enums, so we use String types with constraints
+// Category: TOPS | BOTTOMS | OUTERWEAR | SHOES | ACCESSORIES
+// Season: SPRING | SUMMER | FALL | WINTER | ALL_SEASON
+// Fit: TIGHT | REGULAR | LOOSE | OVERSIZED
+
+// ClothingItem model - represents a single piece of clothing
+model ClothingItem {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   // TOPS | BOTTOMS | OUTERWEAR | SHOES | ACCESSORIES
+  color     String   // Can be comma-separated for multiple colors
+  brand     String?
+  season    String   @default("ALL_SEASON") // SPRING | SUMMER | FALL | WINTER | ALL_SEASON
+  fit       String?  // TIGHT | REGULAR | LOOSE | OVERSIZED
+  material  String?
+  tags      String   // JSON array stored as string (SQLite limitation)
+  imageUrl  String?  // Path to uploaded image
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Many-to-many relationship with outfits
+  outfits   OutfitItem[]
+
+  @@index([category])
+  @@index([season])
+  @@index([createdAt])
+}
+
+// Outfit model - represents a combination of clothing items
+model Outfit {
+  id        String   @id @default(cuid())
+  name      String
+  tags      String   // JSON array stored as string
+  season    String   @default("ALL_SEASON") // SPRING | SUMMER | FALL | WINTER | ALL_SEASON
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Many-to-many relationship with clothing items
+  items     OutfitItem[]
+
+  @@index([season])
+  @@index([createdAt])
+}
+
+// Junction table for many-to-many relationship between Outfit and ClothingItem
+model OutfitItem {
+  id            String        @id @default(cuid())
+  outfitId      String
+  clothingItemId String
+  outfit        Outfit        @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  clothingItem  ClothingItem  @relation(fields: [clothingItemId], references: [id], onDelete: Cascade)
+
+  @@unique([outfitId, clothingItemId])
+  @@index([outfitId])
+  @@index([clothingItemId])
+}
