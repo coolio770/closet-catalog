@@ -56,6 +56,15 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
       panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
     }
   }, [pan, draggedItemId])
+  
+  // Handle item drag start
+  const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation()
+    if (e.button === 0) {
+      setDraggedItemId(itemId)
+      isPanningRef.current = false
+    }
+  }, [])
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanningRef.current && !draggedItemId) {
@@ -120,11 +129,15 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
     const centerX = (rect.width / 2 - pan.x) / zoom
     const centerY = (rect.height / 2 - pan.y) / zoom
     
+    // Offset each new item slightly so they don't overlap
+    const offsetX = (outfitItems.length % 3) * 20 - 20 // -20, 0, 20
+    const offsetY = Math.floor(outfitItems.length / 3) * 20
+    
     const newItem: DraggedItem = {
       item,
-      x: centerX - 64, // Center the item
-      y: centerY - 64,
-      id: `${item.id}-${Date.now()}`,
+      x: centerX - 64 + offsetX, // Center with slight offset
+      y: centerY - 64 + offsetY,
+      id: `${item.id}-${Date.now()}-${Math.random()}`,
     }
     setOutfitItems([...outfitItems, newItem])
     setShowItemDrawer(false) // Close drawer on mobile after adding
@@ -191,10 +204,16 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
 
   const applySuggestion = (itemIds: string[], name: string) => {
     const selected = items.filter((i) => itemIds.includes(i.id))
+    if (selected.length === 0) {
+      alert('Could not find items for this suggestion. They may have been deleted.')
+      return
+    }
+    
     if (name) setOutfitName(name)
     setZoom(1)
     setPan({ x: 0, y: 0 })
 
+    // Position items in a grid layout
     const placed: DraggedItem[] = selected.map((item, idx) => {
       const col = idx % 2
       const row = Math.floor(idx / 2)
@@ -202,7 +221,7 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
         item,
         x: 40 + col * 140,
         y: 40 + row * 160,
-        id: `${item.id}-${Date.now()}-${idx}`,
+        id: `${item.id}-${Date.now()}-${idx}-${Math.random()}`,
       }
     })
     setOutfitItems(placed)
@@ -365,28 +384,36 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
               {outfitItems.map((draggedItem) => (
                 <div
                   key={draggedItem.id}
+                  data-item-id={draggedItem.id}
                   style={{
                     position: 'absolute',
                     left: `${draggedItem.x}px`,
                     top: `${draggedItem.y}px`,
+                    cursor: draggedItemId === draggedItem.id ? 'grabbing' : 'grab',
+                    zIndex: draggedItemId === draggedItem.id ? 50 : 10,
                   }}
                   className="group"
+                  onMouseDown={(e) => handleItemMouseDown(e, draggedItem.id)}
                 >
                   <div className="relative">
                     {draggedItem.item.imageUrl ? (
                       <img
                         src={draggedItem.item.imageUrl}
                         alt={draggedItem.item.name}
-                        className="w-32 h-32 object-cover border-2 border-white shadow-lg"
+                        className="w-32 h-32 object-cover border-2 border-white shadow-lg pointer-events-none"
+                        draggable={false}
                       />
                     ) : (
-                      <div className="w-32 h-32 bg-gray-200 border-2 border-white shadow-lg flex items-center justify-center text-xs text-gray-400">
+                      <div className="w-32 h-32 bg-gray-200 border-2 border-white shadow-lg flex items-center justify-center text-xs text-gray-400 pointer-events-none">
                         No image
                       </div>
                     )}
                     <button
-                      onClick={() => removeItem(draggedItem.id)}
-                      className="absolute -top-1 -right-1 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeItem(draggedItem.id)
+                      }}
+                      className="absolute -top-1 -right-1 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10"
                     >
                       ×
                     </button>
