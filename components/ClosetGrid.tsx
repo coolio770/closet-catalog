@@ -52,14 +52,8 @@ export default function ClosetGrid({ items, onItemDeleted }: ClosetGridProps) {
     }
 
     try {
-      const response = await fetch(`/api/items/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete item')
-      }
-
+      const { itemsAPI } = await import('@/lib/api-client')
+      await itemsAPI.delete(id)
       onItemDeleted()
     } catch (error) {
       console.error('Error deleting item:', error)

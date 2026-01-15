@@ -52,33 +52,25 @@ export default function AddItemForm({ onItemAdded }: AddItemFormProps) {
         return
       }
 
-      const formDataToSend = new FormData()
-      formDataToSend.append('name', formData.name)
-      formDataToSend.append('category', formData.category)
-      formDataToSend.append('color', formData.color)
-      if (formData.brand) formDataToSend.append('brand', formData.brand)
-      formDataToSend.append('season', formData.season)
-      if (formData.fit) formDataToSend.append('fit', formData.fit)
-      if (formData.material) formDataToSend.append('material', formData.material)
-      formDataToSend.append('tags', formData.tags)
-      formDataToSend.append('image', imageFile)
+      const { itemsAPI } = await import('@/lib/api-client')
+      
+      const tagsArray = formData.tags
+        ? formData.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+        : []
 
-      const response = await fetch('/api/items', {
-        method: 'POST',
-        body: formDataToSend,
-      })
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to create item')
-        } else {
-          const text = await response.text()
-          console.error('Server returned HTML error:', text)
-          throw new Error(`Server error: ${response.status}`)
-        }
-      }
+      await itemsAPI.create(
+        {
+          name: formData.name,
+          category: formData.category,
+          color: formData.color,
+          brand: formData.brand || undefined,
+          season: formData.season,
+          fit: formData.fit || undefined,
+          material: formData.material || undefined,
+          tags: tagsArray,
+        },
+        imageFile
+      )
 
       // Reset form
       setFormData({

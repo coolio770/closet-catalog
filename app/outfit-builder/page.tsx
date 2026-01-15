@@ -13,11 +13,9 @@ export default function OutfitBuilderPage() {
 
   const fetchItems = async () => {
     try {
-      const response = await fetch('/api/items')
-      if (response.ok) {
-        const data = await response.json()
-        setItems(data)
-      }
+      const { itemsAPI } = await import('@/lib/api-client')
+      const data = await itemsAPI.getAll()
+      setItems(data)
     } catch (error) {
       console.error('Error fetching items:', error)
     } finally {

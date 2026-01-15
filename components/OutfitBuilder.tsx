@@ -149,18 +149,15 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
 
     setIsSaving(true)
     try {
-      const response = await fetch('/api/outfits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: outfitName,
-          itemIds: outfitItems.map((item) => item.item.id),
-          tags: [],
-          season: 'ALL_SEASON',
-        }),
+      const { outfitsAPI } = await import('@/lib/api-client')
+      
+      await outfitsAPI.create({
+        name: outfitName,
+        tags: [],
+        season: 'ALL_SEASON',
+        notes: null,
+        items: outfitItems.map((item) => item.item),
       })
-
-      if (!response.ok) throw new Error('Failed to save outfit')
 
       setOutfitItems([])
       setOutfitName('')
@@ -181,13 +178,9 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
   const handleSuggestOutfits = async () => {
     setIsSuggesting(true)
     try {
-      const res = await fetch('/api/ai/outfit-suggest', { method: 'POST' })
-      const contentType = res.headers.get('content-type') || ''
-      const payload = contentType.includes('application/json') ? await res.json() : await res.text()
-      if (!res.ok) {
-        throw new Error(typeof payload === 'string' ? payload : payload?.error || 'Failed')
-      }
-      setSuggestions(payload.outfits || [])
+      const { suggestOutfits } = await import('@/lib/ai-client')
+      const suggestions = await suggestOutfits(items)
+      setSuggestions(suggestions)
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Failed to get suggestions'
       alert(errorMessage)

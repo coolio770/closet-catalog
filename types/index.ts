@@ -6,7 +6,7 @@ export type Category = 'TOPS' | 'BOTTOMS' | 'OUTERWEAR' | 'SHOES' | 'ACCESSORIES
 export type Season = 'SPRING' | 'SUMMER' | 'FALL' | 'WINTER' | 'ALL_SEASON'
 export type Fit = 'TIGHT' | 'REGULAR' | 'LOOSE' | 'OVERSIZED'
 
-// ClothingItem type (matches Prisma model)
+// ClothingItem type (client-side storage)
 export interface ClothingItem {
   id: string
   name: string
@@ -16,21 +16,21 @@ export interface ClothingItem {
   season: Season
   fit: Fit | null
   material: string | null
-  tags: string[] // Parsed from JSON string
-  imageUrl: string | null
-  createdAt: Date
-  updatedAt: Date
+  tags: string[]
+  imageUrl: string | null // Base64 data URL
+  createdAt: string // ISO string for IndexedDB
+  updatedAt: string // ISO string for IndexedDB
 }
 
-// Outfit type (matches Prisma model)
+// Outfit type (client-side storage)
 export interface Outfit {
   id: string
   name: string
-  tags: string[] // Parsed from JSON string
+  tags: string[]
   season: Season
   notes: string | null
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string // ISO string for IndexedDB
+  updatedAt: string // ISO string for IndexedDB
   items?: ClothingItem[] // Populated when fetching outfit with items
 }
 
