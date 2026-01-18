@@ -57,10 +57,19 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
     }
   }, [pan, draggedItemId])
   
-  // Handle item drag start
+  // Handle item drag start (mouse)
   const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
     e.stopPropagation()
     if (e.button === 0) {
+      setDraggedItemId(itemId)
+      isPanningRef.current = false
+    }
+  }, [])
+
+  // Handle item drag start (touch)
+  const handleItemTouchStart = useCallback((e: React.TouchEvent, itemId: string) => {
+    e.stopPropagation()
+    if (e.touches.length === 1) {
       setDraggedItemId(itemId)
       isPanningRef.current = false
     }
@@ -95,9 +104,11 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
     }
   }, [draggedItemId])
 
-  // Touch handlers for mobile
+  // Touch handlers for canvas (panning)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1 && !draggedItemId) {
+    // Only start panning if touching the canvas directly (not an item)
+    // Items will have their own touch handlers that stop propagation
+    if (e.touches.length === 1 && !draggedItemId && e.target === e.currentTarget) {
       const touch = e.touches[0]
       isPanningRef.current = true
       panStartRef.current = { x: touch.clientX - pan.x, y: touch.clientY - pan.y }
@@ -105,14 +116,29 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
   }, [pan, draggedItemId])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1 && isPanningRef.current && !draggedItemId) {
+    if (e.touches.length === 1 && draggedItemId && canvasRef.current) {
+      // Dragging an individual item
+      const touch = e.touches[0]
+      const rect = canvasRef.current.getBoundingClientRect()
+      // Calculate position in canvas space (accounting for zoom and pan)
+      const x = (touch.clientX - rect.left - pan.x) / zoom - 64 // 64 is half of item width (128/2)
+      const y = (touch.clientY - rect.top - pan.y) / zoom - 64
+
+      // Only update the dragged item's position
+      setOutfitItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === draggedItemId ? { ...i, x, y } : i
+        )
+      )
+    } else if (e.touches.length === 1 && isPanningRef.current && !draggedItemId) {
+      // Panning the canvas
       const touch = e.touches[0]
       setPan({
         x: touch.clientX - panStartRef.current.x,
         y: touch.clientY - panStartRef.current.y,
       })
     }
-  }, [draggedItemId])
+  }, [pan, zoom, draggedItemId])
 
   const handleTouchEnd = useCallback(() => {
     isPanningRef.current = false
@@ -401,8 +427,9 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
                     cursor: draggedItemId === draggedItem.id ? 'grabbing' : 'grab',
                     zIndex: draggedItemId === draggedItem.id ? 50 : 10,
                   }}
-                  className="group"
+                  className="group touch-none"
                   onMouseDown={(e) => handleItemMouseDown(e, draggedItem.id)}
+                  onTouchStart={(e) => handleItemTouchStart(e, draggedItem.id)}
                 >
                   <div className="relative">
                     {draggedItem.item.imageUrl ? (
