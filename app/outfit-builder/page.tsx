@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react'
 import OutfitBuilder from '@/components/OutfitBuilder'
+import DevTools from '@/components/DevTools'
 import { ClothingItem } from '@/types'
 
 export default function OutfitBuilderPage() {
@@ -35,5 +36,10 @@ export default function OutfitBuilderPage() {
     )
   }
 
-  return <OutfitBuilder items={items} onOutfitSaved={fetchItems} />
+  return (
+    <>
+      <OutfitBuilder items={items} onOutfitSaved={fetchItems} />
+      <DevTools />
+    </>
+  )
 }

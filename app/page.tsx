@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import AddItemForm from '@/components/AddItemForm'
 import ClosetGrid from '@/components/ClosetGrid'
 import MobileNav from '@/components/MobileNav'
+import DevTools from '@/components/DevTools'
 import { ClothingItem } from '@/types'
 
 export default function Home() {
@@ -80,6 +81,9 @@ export default function Home() {
 
       {/* Mobile Navigation */}
       <MobileNav />
+      
+      {/* Dev Tools - Global */}
+      <DevTools />
     </main>
   )
 }
