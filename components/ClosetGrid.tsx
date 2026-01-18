@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react'
 import { ClothingItem } from '@/types'
+import EditItemModal from './EditItemModal'
 
 type Category = 'TOPS' | 'BOTTOMS' | 'OUTERWEAR' | 'SHOES' | 'ACCESSORIES'
 type Season = 'SPRING' | 'SUMMER' | 'FALL' | 'WINTER' | 'ALL_SEASON'
@@ -12,15 +13,17 @@ type Season = 'SPRING' | 'SUMMER' | 'FALL' | 'WINTER' | 'ALL_SEASON'
 interface ClosetGridProps {
   items: ClothingItem[]
   onItemDeleted: () => void
+  onItemUpdated?: () => void
 }
 
-export default function ClosetGrid({ items, onItemDeleted }: ClosetGridProps) {
+export default function ClosetGrid({ items, onItemDeleted, onItemUpdated }: ClosetGridProps) {
   const [filteredItems, setFilteredItems] = useState<ClothingItem[]>(items)
   const [filters, setFilters] = useState({
     category: '' as Category | '',
     season: '' as Season | '',
     search: '',
   })
+  const [editingItem, setEditingItem] = useState<ClothingItem | null>(null)
 
   useEffect(() => {
     let filtered = [...items]
@@ -59,6 +62,19 @@ export default function ClosetGrid({ items, onItemDeleted }: ClosetGridProps) {
       console.error('Error deleting item:', error)
       alert('Failed to delete item. Please try again.')
     }
+  }
+
+  const handleEdit = (item: ClothingItem) => {
+    setEditingItem(item)
+  }
+
+  const handleItemUpdated = () => {
+    if (onItemUpdated) {
+      onItemUpdated()
+    } else {
+      onItemDeleted() // Refresh the list
+    }
+    setEditingItem(null)
   }
 
   const getCategoryLabel = (category: Category) => {
@@ -163,16 +179,29 @@ export default function ClosetGrid({ items, onItemDeleted }: ClosetGridProps) {
                     <span className="text-gray-300 text-xs">No image</span>
                   </div>
                 )}
-                {/* Delete button - appears on hover/touch */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDelete(item.id)
-                  }}
-                  className="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-sm font-bold"
-                >
-                  ×
-                </button>
+                {/* Action buttons - appear on hover (desktop) or always visible on mobile */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleEdit(item)
+                    }}
+                    className="w-8 h-8 bg-blue-600 bg-opacity-90 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-opacity-100"
+                    title="Edit item"
+                  >
+                    ✏
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(item.id)
+                    }}
+                    className="w-8 h-8 bg-black bg-opacity-70 text-white rounded-full flex items-center justify-center text-sm font-bold hover:bg-opacity-90"
+                    title="Delete item"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
 
               {/* Item info - Minimal, clean */}
@@ -188,6 +217,16 @@ export default function ClosetGrid({ items, onItemDeleted }: ClosetGridProps) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          isOpen={true}
+          onClose={() => setEditingItem(null)}
+          onItemUpdated={handleItemUpdated}
+        />
       )}
     </div>
   )

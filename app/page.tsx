@@ -40,6 +40,10 @@ export default function Home() {
     fetchItems()
   }
 
+  const handleItemUpdated = () => {
+    fetchItems()
+  }
+
   return (
     <main className="min-h-screen bg-white pb-20 md:pb-8">
       {/* Mobile Header - Clean, minimal */}
@@ -75,7 +79,7 @@ export default function Home() {
             Loading your closet...
           </div>
         ) : (
-          <ClosetGrid items={items} onItemDeleted={handleItemDeleted} />
+          <ClosetGrid items={items} onItemDeleted={handleItemDeleted} onItemUpdated={handleItemUpdated} />
         )}
       </section>
 
