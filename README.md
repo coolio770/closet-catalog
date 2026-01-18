@@ -6,8 +6,8 @@ A personal web app to catalog, organize, and style outfits from your clothing co
 
 - **Frontend**: Next.js 14 (App Router) + React + TypeScript
 - **Styling**: Tailwind CSS
-- **Database**: Prisma + SQLite
-- **Image Storage**: Local file system
+- **Storage**: IndexedDB (client-side browser storage)
+- **AI**: OpenAI API for outfit suggestions
 
 ## Getting Started
 
@@ -23,22 +23,24 @@ A personal web app to catalog, organize, and style outfits from your clothing co
    npm install
    ```
 
-2. **Set up the database:**
-   ```bash
-   # Generate Prisma client
-   npm run db:generate
-   
-   # Create database and tables
-   npm run db:push
-   ```
-
-3. **Start the development server:**
+2. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-4. **Open your browser:**
+3. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Optional: AI Features
+
+To enable AI-powered outfit suggestions, set the OpenAI API key in your environment:
+
+```bash
+# Create a .env.local file
+NEXT_PUBLIC_OPENAI_API_KEY=your_api_key_here
+```
+
+**Note**: The API key is exposed to the client. For production, consider using a serverless function as a proxy.
 
 ## Available Scripts
 
@@ -46,45 +48,46 @@ A personal web app to catalog, organize, and style outfits from your clothing co
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
-- `npm run db:push` - Push Prisma schema to database
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:studio` - Open Prisma Studio (database GUI)
 
 ## Project Structure
 
 ```
 closet-catalog/
 ├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   │   └── items/         # Clothing items CRUD endpoints
+│   ├── outfit-builder/    # Outfit builder page
 │   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
+│   ├── page.tsx           # Home page (closet view)
 │   └── globals.css        # Global styles
 ├── components/            # React components
 │   ├── AddItemForm.tsx    # Form to add new items
-│   └── ClosetGrid.tsx     # Grid view with filters
+│   ├── ClosetGrid.tsx     # Grid view with filters
+│   ├── OutfitBuilder.tsx  # Outfit builder component
+│   └── MobileNav.tsx      # Mobile navigation
 ├── lib/                   # Utilities
-│   └── prisma.ts          # Prisma client singleton
-├── prisma/                # Database schema
-│   └── schema.prisma      # Prisma schema definition
+│   ├── storage.ts         # IndexedDB storage layer
+│   ├── api-client.ts      # Client-side API client
+│   ├── image-utils.ts     # Image handling utilities
+│   └── ai-client.ts       # OpenAI API client
 ├── types/                 # TypeScript types
 │   └── index.ts           # Shared type definitions
 └── public/                # Static files
-    └── uploads/           # Uploaded images (created automatically)
 ```
 
-## Features (MVP)
+## Features
 
 - ✅ Add/edit/delete clothing items
 - ✅ Grid view of closet with filters (category, color, season)
-- 🔜 Outfit builder screen
-- 🔜 Outfit library page
+- ✅ Outfit builder with drag-and-drop interface
+- ✅ AI-powered outfit suggestions
+- ✅ Mobile-responsive design
+- ✅ Client-side storage (no backend required)
 
-## Database
+## Data Storage
 
-The app uses SQLite for local-first development. The database file is located at `prisma/dev.db` (created automatically on first run).
+All data is stored in the browser using IndexedDB. This means:
+- **No database setup required** - works out of the box
+- **Data persists** across browser sessions
+- **Privacy-focused** - data stays on your device
+- **Portable** - can deploy to any static hosting service
 
-To view/edit data directly, use Prisma Studio:
-```bash
-npm run db:studio
-```
+**Note**: Data is stored locally in your browser. Clearing browser data will remove your items.

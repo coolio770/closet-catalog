@@ -86,7 +86,7 @@ export default function OutfitBuilder({ items, onOutfitSaved }: OutfitBuilderPro
         )
       )
     }
-  }, [pan, zoom, draggedItemId, outfitItems])
+  }, [pan, zoom, draggedItemId])
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false

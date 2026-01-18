@@ -90,20 +90,8 @@ export const itemsAPI = {
 export const outfitsAPI = {
   // Get all outfits
   async getAll(): Promise<Outfit[]> {
-    const outfits = await storage.getOutfits()
-    
-    // Populate items for each outfit
-    const outfitsWithItems = await Promise.all(
-      outfits.map(async (outfit) => {
-        if (outfit.items && outfit.items.length > 0) {
-          // Items are already included in the outfit
-          return outfit
-        }
-        return outfit
-      })
-    )
-    
-    return outfitsWithItems
+    // Items are stored directly on the outfit in IndexedDB
+    return storage.getOutfits()
   },
 
   // Get single outfit
